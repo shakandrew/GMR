@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from tqdm import tqdm
 import pathlib
-
+import warnings
+warnings.filterwarnings('ignore')
 
 """
 *
@@ -28,11 +29,11 @@ audio ----000---000001.mp3
 DICT_GENRES = {'Electronic': 1, 'Experimental': 2, 'Folk': 3, 'Hip-Hop': 4,
                'Instrumental': 5, 'International': 6, 'Pop': 7, 'Rock': 8}
 
-AUDIO_DIR = ""
+AUDIO_DIR = "./data"
 N_TTF = 2048
 HOP_LENGTH = 1024
 FREQ_SLICES = 640
-MIN_TRACK_LENGTH = 30
+MIN_TRACK_LENGTH = 5
 # DATASET_TYPE can operate with "spectrogram", "feature" values
 DATASET_TYPE = "spectrogram"
 
@@ -56,7 +57,7 @@ def get_genres(df):
     :param df:
     :return:
     """
-    return {val: ind for ind, val in enumerate(df.top_genres.unique().tolist())}
+    return {val: ind for ind, val in enumerate(df.track.genre_top.unique().tolist())}
 
 
 def create_spectrogram(track_id):
@@ -67,10 +68,10 @@ def create_spectrogram(track_id):
     """
     filename = get_track_path(AUDIO_DIR, track_id)
     y, sr = librosa.load(filename)
-    if y / sr < MIN_TRACK_LENGTH:
+    if len(y) / sr < MIN_TRACK_LENGTH:
         raise Exception("Cannot progress track due to its size. Too small.")
     spectrogram = librosa.feature.melspectrogram(y, sr, n_fft=N_TTF, hop_length=HOP_LENGTH)
-    spectrogram = librosa.power_to_db(spectrogram, ref=np.max)
+    # spectrogram = librosa.power_to_db(spectrogram, ref=np.max)
     return spectrogram.T
 
 
@@ -84,7 +85,7 @@ def create_datasets(filename, genres=None, ds_size="small", ds_type="spectrogram
     :return:
     """
     tracks = pd.read_csv(filename, index_col=0, header=[0, 1])
-    keep_cols = (("set", "split"), ("set", "subset"), ("track", "genre_top"))
+    keep_cols = [("set", "split"), ("set", "subset"), ("track", "genre_top")]
     df = tracks[keep_cols]
 
     if ds_size not in ("small", "medium", "large"):
