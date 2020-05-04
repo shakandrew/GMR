@@ -29,7 +29,7 @@ audio ----000---000001.mp3
 DICT_GENRES = {'Electronic': 1, 'Experimental': 2, 'Folk': 3, 'Hip-Hop': 4,
                'Instrumental': 5, 'International': 6, 'Pop': 7, 'Rock': 8}
 
-AUDIO_DIR = "./data"
+AUDIO_DIR = "/home/ashumak/repo/GMR-test/fma_small/"
 N_TTF = 2048
 HOP_LENGTH = 1024
 FREQ_SLICES = 640
@@ -103,8 +103,8 @@ def create_datasets(filename, genres=None, ds_size="small", ds_type="spectrogram
 
 
 
-def _create_set(df, genres, set_name):
-    spec_set = df[df[('set', 'split')]==set_name]
+def _create_set(df, genres, set_name, start_id=0, end_id=1000000000, output_name=None):
+    spec_set = df[df[('set', 'split')]==set_name].iloc[start_id:end_id]
     if DATASET_TYPE == "spectrogram":
         x, y = _create_spectrogram_dataset(spec_set, genres)
     elif DATASET_TYPE == "feature":
@@ -112,6 +112,8 @@ def _create_set(df, genres, set_name):
         pass
     else:
         raise Exception(f"Unsupported dataset type {DATASET_TYPE}")
+    if output_name:
+        set_name = output_name
     np.savez(f"{set_name}", x, y)
 
 
